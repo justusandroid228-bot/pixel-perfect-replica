@@ -24,7 +24,7 @@ export function useSession() {
 export function siteUrl() {
   const configured = import.meta.env.VITE_AUTH_REDIRECT_URL as string | undefined;
   if (typeof window === "undefined") return configured ?? "";
-  const isNative = window.location.protocol === "capacitor:" || window.location.hostname === "localhost" && !!(window as unknown as { Capacitor?: unknown }).Capacitor;
+  const isNative = !!(window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.();
   if (isNative && configured) return configured.replace(/\/+$/, "");
   return window.location.origin;
 }
