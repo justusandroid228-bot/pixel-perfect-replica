@@ -22,7 +22,7 @@ export function useSession() {
 
 /** Where email links (confirm signup, reset password) should land. Native builds have no web origin. */
 export function siteUrl() {
-  const configured = import.meta.env.VITE_AUTH_REDIRECT_URL as string | undefined;
+  const configured = import.meta.env['VITE_AUTH_REDIRECT_URL'] as string | undefined;
   if (typeof window === "undefined") return configured ?? "";
   const isNative = !!(window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.();
   if (isNative && configured) return configured.replace(/\/+$/, "");

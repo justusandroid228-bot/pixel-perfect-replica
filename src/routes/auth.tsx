@@ -12,7 +12,7 @@ type Mode = "login" | "signup" | "forgot";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s: Record<string, unknown>): { mode?: Mode } => ({
-    mode: s.mode === "signup" || s.mode === "forgot" ? s.mode : "login",
+    mode: s["mode"] === "signup" || s["mode"] === "forgot" ? s["mode"] : "login",
   }),
   head: () => ({
     meta: [
@@ -54,10 +54,10 @@ function AuthPage() {
     setError(null);
     setNotice(null);
     const em = emailSchema.safeParse(email);
-    if (!em.success) return setError(em.error.issues[0].message);
+    if (!em.success) return setError(em.error.issues[0]?.message ?? "Invalid input");
     if (mode !== "forgot") {
       const pw = passSchema.safeParse(password);
-      if (!pw.success) return setError(pw.error.issues[0].message);
+      if (!pw.success) return setError(pw.error.issues[0]?.message ?? "Invalid input");
     }
     setBusy(true);
     try {
