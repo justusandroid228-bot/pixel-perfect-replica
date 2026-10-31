@@ -15,6 +15,13 @@
       "when": 1793176745371,
       "tag": "0001_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793460254257,
+      "tag": "0002_join_room_drops_solo_room",
+      "breakpoints": true
     }
   ]
 }
