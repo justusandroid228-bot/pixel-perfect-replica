@@ -19,7 +19,7 @@ export type ChatMessage = {
   created_at: string;
   pending?: boolean;
   failed?: boolean;
-  error?: string;
+  error?: string | undefined;
   progress?: number;
   localUrl?: string;
 };
@@ -78,7 +78,7 @@ const STATUS: Record<DeliveryState, { icon: typeof Check; label: string }> = {
   read: { icon: CheckCheck, label: "Read" },
 };
 
-export function MessageBubble({ m, mine, state, onRetry }: { m: ChatMessage; mine: boolean; state?: DeliveryState; onRetry?: () => void }) {
+export function MessageBubble({ m, mine, state, onRetry }: { m: ChatMessage; mine: boolean; state?: DeliveryState | undefined; onRetry?: (() => void) | undefined }) {
   const time = new Date(m.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   const sticker = m.kind === "sticker" ? getSticker(m.body) : undefined;
   const S = state ? STATUS[state] : null;

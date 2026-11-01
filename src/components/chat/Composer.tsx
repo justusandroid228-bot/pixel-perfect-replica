@@ -56,26 +56,37 @@ export function Composer({ disabled, onText, onFile, onSticker, onTyping }: Prop
   function submit() {
     const t = text.trim();
     if (!t) return;
-    if (t.length > MAX_TEXT) return toast.error(`Messages can be up to ${MAX_TEXT} characters.`);
+    if (t.length > MAX_TEXT) {
+      toast.error(`Messages can be up to ${MAX_TEXT} characters.`);
+      return;
+    }
     onText(t);
     setText("");
   }
 
   async function startRecording() {
     const mime = pickAudioMime();
-    if (mime === null || !navigator.mediaDevices?.getUserMedia) return toast.error("Voice recording isn't supported on this device.");
+    if (mime === null || !navigator.mediaDevices?.getUserMedia) {
+      toast.error("Voice recording isn't supported on this device.");
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
       chunks.current = [];
       cancelled.current = false;
-      rec.ondataavailable = (e) => e.data.size && chunks.current.push(e.data);
+      rec.ondataavailable = (e) => {
+        if (e.data.size) chunks.current.push(e.data);
+      };
       rec.onstop = () => {
         stream.getTracks().forEach((t) => t.stop());
         if (cancelled.current) return;
         const type = (rec.mimeType || mime || "audio/webm").split(";")[0]!;
         const blob = new Blob(chunks.current, { type });
-        if (blob.size < 1000) return toast.error("That recording was too short.");
+        if (blob.size < 1000) {
+          toast.error("That recording was too short.");
+          return;
+        }
         onFile(blob, type);
       };
       rec.start(250);
