@@ -77,7 +77,10 @@ export function ChatRoom({ roomId, meId, partner, prefs }: { roomId: string; meI
       .from("messages").select("*").eq("room_id", roomId).lt("created_at", oldest.created_at)
       .order("created_at", { ascending: false }).limit(PAGE);
     setLoadingOlder(false);
-    if (error) return toast.error(friendlyError(error));
+    if (error) {
+      toast.error(friendlyError(error));
+      return;
+    }
     const rows = (data ?? []).reverse();
     const el = scroller.current;
     if (el) keepOffset.current = el.scrollHeight - el.scrollTop;
@@ -244,7 +247,10 @@ export function ChatRoom({ roomId, meId, partner, prefs }: { roomId: string; meI
   const sendSticker = (s: Sticker) => enqueue({ kind: "sticker", body: s.id });
   function sendFile(file: File | Blob, mimeOverride?: string) {
     const c = checkMedia({ type: mimeOverride ?? file.type, size: file.size });
-    if (!c.ok) return toast.error(c.error);
+    if (!c.ok) {
+      toast.error(c.error);
+      return;
+    }
     enqueue({ kind: c.kind, file, ext: c.ext, media_mime: c.mime, media_size: file.size, progress: 0, localUrl: URL.createObjectURL(file) });
   }
 

@@ -48,7 +48,10 @@ function SettingsPage() {
 
   async function saveName() {
     const n = name.trim().slice(0, 40);
-    if (!n || !user) return toast.error("Your name can't be empty.");
+    if (!n || !user) {
+      toast.error("Your name can't be empty.");
+      return;
+    }
     setSaving(true);
     const { error } = await supabase.from("profiles").update({ display_name: n, updated_at: new Date().toISOString() }).eq("id", user.id);
     setSaving(false);

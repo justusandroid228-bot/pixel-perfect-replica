@@ -23,12 +23,13 @@ export function Pairing({ roomId, onChanged }: Props) {
     supabase.rpc("active_invitation").then(({ data }) => setActive((data as Active) ?? null));
   }, [roomId, code]);
 
-  async function run<T>(key: string, fn: () => Promise<T>) {
+  async function run<T>(key: string, fn: () => Promise<T>): Promise<T | undefined> {
     setBusy(key);
     try {
       return await fn();
     } catch (err) {
       toast.error(friendlyError(err));
+      return undefined;
     } finally {
       setBusy(null);
     }
