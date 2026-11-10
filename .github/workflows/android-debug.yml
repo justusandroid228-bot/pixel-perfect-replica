@@ -21,18 +21,12 @@ jobs:
       - name: Build Web App
         run: npm run build
         
-      - name: Fix Assets and Create index.html
+      - name: Move Assets
         run: |
           mkdir -p dist/client
-          find . -name "index.html" -not -path "./node_modules/*" -not -path "./.git/*" -exec cp {} dist/client/ \;
+          cp -r dist/* dist/client/ 2>/dev/null || true
+          cp -r .output/public/* dist/client/ 2>/dev/null || true
           
-          # index.html မရှိရင် အသစ်ဆောက်မယ်
-          if [ ! -f dist/client/index.html ]; then
-            echo "<!DOCTYPE html><html><head><title>App</title></head><body><div id=\"root\"></div><script type=\"module\" src=\"/src/main.tsx\"></script></body></html>" > dist/client/index.html
-          fi
-          
-          ls -la dist/client
-      
       - name: Add Android Platform
         run: npx cap add android
       
