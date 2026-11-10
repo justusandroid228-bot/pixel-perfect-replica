@@ -12,6 +12,10 @@ jobs:
         with: { node-version: 22 }
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 21 }
+      
+      - name: Upgrade npm
+        run: npm install -g npm@11
+      
       - run: npm install --no-audit --no-fund
       - run: bash scripts/android-setup.sh
       - run: chmod +x gradlew && ./gradlew assembleDebug
