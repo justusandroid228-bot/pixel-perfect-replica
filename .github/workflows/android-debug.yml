@@ -21,6 +21,14 @@ jobs:
       - name: Build Web App
         run: npm run build
       
+      - name: Fix Web Assets
+        run: |
+          mkdir -p temp_dir
+          mv dist/* temp_dir/ || true
+          mkdir -p dist/client
+          mv temp_dir/* dist/client/ || true
+          rm -rf temp_dir
+          
       - name: Add Android Platform
         run: npx cap add android
       
