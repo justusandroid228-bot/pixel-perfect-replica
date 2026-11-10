@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Android app: `CAPACITOR=1 vite build` produces a static SPA in dist/client that Capacitor bundles; the android/ folder is generated in CI by scripts/android-setup.sh (not committed) so it never drifts from config.

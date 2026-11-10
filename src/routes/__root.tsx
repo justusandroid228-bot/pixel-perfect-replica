@@ -14,6 +14,7 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
+import { initNative } from "@/lib/native";
 
 function NotFoundComponent() {
   return (
@@ -123,6 +124,10 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+
+  useEffect(() => {
+    initNative(() => router.history.back()).catch(() => {});
+  }, [router]);
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {
