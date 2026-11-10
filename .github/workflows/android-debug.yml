@@ -20,7 +20,10 @@ jobs:
       
       - name: Build Web App
         run: npm run build
-        
+      
+      - name: Move Web Assets
+        run: mkdir -p dist/client && cp -r dist/* dist/client/ || true
+      
       - name: Add Android Platform
         run: npx cap add android
       
