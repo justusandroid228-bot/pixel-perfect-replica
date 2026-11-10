@@ -18,9 +18,23 @@ jobs:
       
       - run: npm install --no-audit --no-fund
       
-      - name: Build Web App to dist/client
-        run: npx vite build --outDir dist/client
+      - name: Build Web App
+        run: npm run build
         
+      - name: Debug and Fix Assets
+        run: |
+          echo "=== လက်ရှိ Folder တွေ စစ်ထုတ်ခြင်း ==="
+          ls -la
+          echo "=== dist Folder ရှိမရှိ စစ်ခြင်း ==="
+          ls -la dist 2>/dev/null || echo "dist folder မရှိပါ"
+          
+          # index.html ကို ရှိသမျှ နေရာက ရှာပြီး dist/client ထဲ ကူးထည့်ခြင်း
+          mkdir -p dist/client
+          find . -name "index.html" -not -path "./node_modules/*" -not -path "./.git/*" -exec cp {} dist/client/ \;
+          
+          echo "=== ကူးပြီးနောက် dist/client ထဲက ဖိုင်များ ==="
+          ls -la dist/client
+      
       - name: Add Android Platform
         run: npx cap add android
       
