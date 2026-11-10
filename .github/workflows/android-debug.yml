@@ -21,12 +21,6 @@ jobs:
       - name: Build Web App
         run: npm run build
       
-      - name: Move Web Assets
-        run: |
-          mkdir -p dist/client
-          find . -name "index.html" -not -path "./node_modules/*" -not -path "./.git/*" -exec cp {} dist/client/ \;
-          cp -r dist/assets dist/client/ 2>/dev/null || true
-          
       - name: Add Android Platform
         run: npx cap add android
       
