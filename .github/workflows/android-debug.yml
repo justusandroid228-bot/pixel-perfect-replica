@@ -21,11 +21,12 @@ jobs:
       - name: Build Web App
         run: npm run build
         
-      - name: Move Assets
+      - name: Fix Assets
         run: |
           mkdir -p dist/client
           cp -r dist/* dist/client/ 2>/dev/null || true
           cp -r .output/public/* dist/client/ 2>/dev/null || true
+          cp index.html dist/client/ 2>/dev/null || true
           
       - name: Add Android Platform
         run: npx cap add android
