@@ -18,20 +18,12 @@ jobs:
       
       - run: npm install --no-audit --no-fund
       
-      - name: Build Web App
-        run: npm run build
-      
+      - name: Build Web App to dist/client
+        run: npx vite build --outDir dist/client
+        
       - name: Add Android Platform
         run: npx cap add android
       
-      - name: Fix Web Assets
-        run: |
-          mkdir -p temp_dir
-          mv dist/* temp_dir/ || true
-          mkdir -p dist/client
-          mv temp_dir/* dist/client/ || true
-          rm -rf temp_dir
-          
       - run: npx cap sync android
       
       - run: bash scripts/android-setup.sh
