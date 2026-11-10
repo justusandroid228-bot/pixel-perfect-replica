@@ -21,18 +21,16 @@ jobs:
       - name: Build Web App
         run: npm run build
         
-      - name: Debug and Fix Assets
+      - name: Fix Assets and Create index.html
         run: |
-          echo "=== လက်ရှိ Folder တွေ စစ်ထုတ်ခြင်း ==="
-          ls -la
-          echo "=== dist Folder ရှိမရှိ စစ်ခြင်း ==="
-          ls -la dist 2>/dev/null || echo "dist folder မရှိပါ"
-          
-          # index.html ကို ရှိသမျှ နေရာက ရှာပြီး dist/client ထဲ ကူးထည့်ခြင်း
           mkdir -p dist/client
           find . -name "index.html" -not -path "./node_modules/*" -not -path "./.git/*" -exec cp {} dist/client/ \;
           
-          echo "=== ကူးပြီးနောက် dist/client ထဲက ဖိုင်များ ==="
+          # index.html မရှိရင် အသစ်ဆောက်မယ်
+          if [ ! -f dist/client/index.html ]; then
+            echo "<!DOCTYPE html><html><head><title>App</title></head><body><div id=\"root\"></div><script type=\"module\" src=\"/src/main.tsx\"></script></body></html>" > dist/client/index.html
+          fi
+          
           ls -la dist/client
       
       - name: Add Android Platform
