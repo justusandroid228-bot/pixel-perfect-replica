@@ -17,7 +17,7 @@ jobs:
         run: npm install -g npm@11
       
       - run: npm install --no-audit --no-fund
-      - run: npm run build
+      - run: npx cap sync android
       - run: bash scripts/android-setup.sh
       - run: chmod +x gradlew && ./gradlew assembleDebug
         working-directory: android
