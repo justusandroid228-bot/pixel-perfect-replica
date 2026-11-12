@@ -12,9 +12,9 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
  * The scenarios were verified against the production backend on 2026-11-12
  * (third account, revoked code, full room, non-member reads, expired code).
  */
-const URL = process.env.VITE_SUPABASE_URL;
-const KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-const run = URL && KEY && process.env.JUSTUS_DB_SECURITY_TESTS ? describe : describe.skip;
+const URL = process.env["VITE_SUPABASE_URL"];
+const KEY = process.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
+const run = URL && KEY && process.env["JUSTUS_DB_SECURITY_TESTS"] ? describe : describe.skip;
 
 const PASSWORD = "test-pass-123456";
 
