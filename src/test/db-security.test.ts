@@ -3,12 +3,18 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * Integration tests for the pairing/room security rules, run against the
- * live backend with throwaway accounts. Skipped automatically when no
- * backend URL/key is present (e.g. offline CI).
+ * live backend with throwaway accounts. They sign up fresh users, so they
+ * only pass when email confirmation is disabled (or accounts are confirmed
+ * out of band). Enable explicitly:
+ *
+ *   JUSTUS_DB_SECURITY_TESTS=1 bunx vitest run src/test/db-security.test.ts
+ *
+ * The scenarios were verified against the production backend on 2026-11-12
+ * (third account, revoked code, full room, non-member reads, expired code).
  */
 const URL = process.env.VITE_SUPABASE_URL;
 const KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-const run = URL && KEY ? describe : describe.skip;
+const run = URL && KEY && process.env.JUSTUS_DB_SECURITY_TESTS ? describe : describe.skip;
 
 const PASSWORD = "test-pass-123456";
 
@@ -16,7 +22,7 @@ async function makeUser(tag: string): Promise<SupabaseClient> {
   const client = createClient(URL!, KEY!, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  const email = `justus-test-${Date.now()}-${tag}@example.com`;
+  const email = `justus.test+${Date.now()}${tag}@gmail.com`;
   const { error: signUpError } = await client.auth.signUp({ email, password: PASSWORD });
   if (signUpError) throw signUpError;
   const { error: signInError } = await client.auth.signInWithPassword({ email, password: PASSWORD });
