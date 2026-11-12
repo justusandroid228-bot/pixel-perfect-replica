@@ -22,3 +22,36 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Signed Android release APK
+
+In GitHub, open this repository → **Settings → Secrets and variables → Actions → New repository secret** and add:
+
+| Secret | Value |
+| --- | --- |
+| `ANDROID_KEYSTORE_BASE64` | Base64 encoding of your existing release `.jks` or `.keystore` file (not its path). |
+| `ANDROID_KEYSTORE_PASSWORD` | Keystore password. |
+| `ANDROID_KEY_ALIAS` | Signing key alias inside that keystore. |
+| `ANDROID_KEY_PASSWORD` | Signing key password (may match the keystore password). |
+
+Use **repository secrets in GitHub**, not Lovable project secrets. Do not paste keys or passwords into chat, commit them, or put them in workflow commands. Keep an encrypted backup of the original keystore and passwords: future updates must use the same signing key. A release APK cannot update an installed debug APK signed with a different key; uninstalling the debug app first removes its local data.
+
+Encode an existing keystore locally into a temporary file, copy its contents into `ANDROID_KEYSTORE_BASE64`, then delete the temporary file:
+
+```sh
+# Linux / macOS (run outside the repository)
+base64 < /path/to/release.jks | tr -d '\n' > /tmp/release-keystore.base64
+```
+
+```powershell
+# Windows PowerShell (run outside the repository)
+[Convert]::ToBase64String([IO.File]::ReadAllBytes('C:\secure\release.jks')) | Set-Content "$env:TEMP\release-keystore.base64" -NoNewline
+```
+
+If this is the first release and you have no keystore, create one locally with the Java JDK's interactive prompts (never include passwords as command arguments):
+
+```sh
+keytool -genkeypair -v -keystore /secure/path/justus-release.jks -storetype JKS -alias justus -keyalg RSA -keysize 3072 -validity 10000
+```
+
+Open **Actions → Android signed release APK → Run workflow**, select the branch containing this workflow, then run it. Download **justus-release-apk** from the successful run's **Artifacts**, unzip it, and install `app-release.apk`. The workflow builds the bundled app, validates the keystore alias, signs the APK, and verifies its signature before uploading. Missing secrets, invalid signing credentials, missing APK output, or verification failure stop the run. The keystore is stored only in a restricted temporary directory and removed when signing finishes, including on failure; only the verified APK is uploaded.
