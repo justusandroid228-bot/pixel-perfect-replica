@@ -15,6 +15,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { initNative } from "@/lib/native";
+import { isModuleLoadError, recoverModuleLoad } from "@/lib/module-recovery";
 
 function NotFoundComponent() {
   return (
@@ -43,6 +44,13 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    if (isModuleLoadError(error)) {
+      try {
+        recoverModuleLoad(error, window.location.pathname + window.location.search, window.sessionStorage, () => window.location.reload());
+      } catch {
+        // The manual retry remains available when browser storage is blocked.
+      }
+    }
   }, [error]);
 
   return (
@@ -57,6 +65,10 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
+              if (isModuleLoadError(error)) {
+                window.location.reload();
+                return;
+              }
               router.invalidate();
               reset();
             }}

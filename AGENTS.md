@@ -11,3 +11,4 @@
 
 - Android app: `CAPACITOR=1 vite build` produces a static SPA in dist/client that Capacitor bundles; the android/ folder is generated in CI by scripts/android-setup.sh (not committed) so it never drifts from config.
 - Android release signing uses scripts/android-release.py with GitHub secrets passed via environment, a temporary restricted keystore, and apksigner verification before artifact upload so credentials are not interpolated into shell commands or committed.
+- Recover failed lazy page downloads with one session-scoped reload per address; manual retry reloads the document because router invalidation can reuse a rejected module import.
