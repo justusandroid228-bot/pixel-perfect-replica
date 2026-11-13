@@ -39,6 +39,9 @@ def build_release(root, environ):
     if not verifiers:
         raise ValueError("Android SDK build-tools must include apksigner.")
     verifier = max(verifiers, key=lambda p: tuple(int(part) if part.isdigit() else 0 for part in p.parent.name.split(".")))
+    apk = android / "app/build/outputs/apk/release/app-release.apk"
+    # A previous local build must never be mistaken for this run's output.
+    apk.unlink(missing_ok=True)
     with tempfile.TemporaryDirectory(prefix="justus-signing-") as folder:
         keystore = Path(folder) / "release.keystore"
         keystore.write_bytes(material)
@@ -59,7 +62,6 @@ def build_release(root, environ):
         gradle = android / "gradlew"
         gradle.chmod(gradle.stat().st_mode | 0o100)
         subprocess.run(["./gradlew", "--no-daemon", "assembleRelease"], cwd=android, env=signing_env, check=True)
-        apk = android / "app/build/outputs/apk/release/app-release.apk"
         if not apk.is_file():
             raise ValueError("The signed app-release.apk was not produced; no artifact will be uploaded.")
         subprocess.run([str(verifier), "verify", "--verbose", "--print-certs", str(apk)], check=True)
