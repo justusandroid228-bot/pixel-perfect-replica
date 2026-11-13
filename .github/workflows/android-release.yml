@@ -29,10 +29,10 @@ jobs:
       - run: npm install --no-audit --no-fund
       - name: Build Web Assets
         run: npm run build
-      - name: Prepare Capacitor Web Assets
+      - name: Fix Capacitor Web Directory Path
         run: |
-          echo "Searching for index.html in the project..."
-          # ဖိုင်တွေ ဘယ်နေရာမှာ ရှိလဲဆိုတာ ရှာပါမယ်
+          echo "Searching for index.html..."
+          # index.html ရှိတဲ့ ဖိုဒါကို ရှာပါမယ်
           INDEX_PATH=$(find . -name "index.html" -not -path "*/node_modules/*" -not -path "*/android/*" | head -n 1)
           
           if [ -z "$INDEX_PATH" ]; then
@@ -40,14 +40,19 @@ jobs:
             exit 1
           fi
           
-          echo "Found index.html at: $INDEX_PATH"
+          # ဖိုင်တွေ ရှိတဲ့ ဖိုဒါကို ရှာပါ (ဥပမာ - dist, dist/client, build)
           WEB_DIR=$(dirname "$INDEX_PATH")
-          echo "Web assets are in: $WEB_DIR"
+          # လမ်းကြောင်းအပြည့်အစုံကနေ './' ကို ဖြတ်ထုတ်ပါမယ်
+          CLEAN_DIR=${WEB_DIR#./}
           
-          # Capacitor အတွက် dist ဖိုဒါ ဖန်တီးပြီး ဖိုင်တွေ ရွှေ့ပါမယ်
-          mkdir -p dist
-          cp -r "$WEB_DIR"/* dist/
-          echo "Successfully copied web assets to dist/"
+          echo "Found index.html in: $CLEAN_DIR"
+          echo "Updating capacitor.config.ts webDir to: $CLEAN_DIR"
+          
+          # capacitor.config.ts ဖိုင်ထဲက webDir ကို ရှာတွေ့တဲ့ ဖိုဒါနဲ့ အစားထိုးပါမယ်
+          sed -i "s|webDir: *['\"].*['\"]|webDir: '$CLEAN_DIR'|" capacitor.config.ts
+          
+          echo "Updated capacitor.config.ts:"
+          grep -i webDir capacitor.config.ts
       - name: Build bundled app and prepare Android
         run: bash scripts/android-setup.sh
       - name: Build and verify signed APK
