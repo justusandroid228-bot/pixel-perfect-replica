@@ -27,6 +27,8 @@ jobs:
       - name: Upgrade npm
         run: npm install -g npm@11
       - run: npm install --no-audit --no-fund
+      - name: Build Web Assets
+        run: npm run build
       - name: Build bundled app and prepare Android
         run: bash scripts/android-setup.sh
       - name: Build and verify signed APK
