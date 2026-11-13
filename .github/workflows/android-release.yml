@@ -1,5 +1,4 @@
 name: Android signed release APK
-# Needs repo secrets: ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
 on:
   workflow_dispatch:
 permissions:
@@ -15,8 +14,10 @@ jobs:
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 21 }
       - uses: android-actions/setup-android@v4
+      
       - name: Test signing safeguards
         run: python3 -m unittest discover -s scripts -p 'test_android_release.py' -v
+        
       - name: Validate signing secrets
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -24,22 +25,48 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: python3 scripts/android-release.py --check-secrets
-      - name: Upgrade npm
-        run: npm install -g npm@11
-      - run: npm install --no-audit --no-fund
-      - name: Build Web Assets
-        run: npm run build || CAPACITOR=1 npx vite build
-      - name: Force Create Dist and Copy Files
+        
+      - name: Upgrade npm and Install Dependencies
         run: |
+          npm install -g npm@11
+          npm install --no-audit --no-fund
+          
+      - name: Build Web App and Ensure Dist Folder
+        run: |
+          npm run build
+          
+          # Create dist folder if it doesn't exist
           mkdir -p dist
-          INDEX_PATH=$(find . -name "index.html" -not -path "*/node_modules/*" -not -path "*/android/*" | head -n 1)
-          if [ -n "$INDEX_PATH" ]; then
-            WEB_DIR=$(dirname "$INDEX_PATH")
-            cp -r "$WEB_DIR"/* dist/
+          
+          # If index.html is not in dist, find it and force copy it to dist
+          if [ ! -f "dist/index.html" ]; then
+            echo "index.html is missing from dist. Searching entire project..."
+            FOUND_INDEX=$(find . -name "index.html" -not -path "*/node_modules/*" -not -path "*/android/*" | head -n 1)
+            if [ -n "$FOUND_INDEX" ]; then
+              echo "Found at $FOUND_INDEX. Copying to dist..."
+              cp -r "$(dirname "$FOUND_INDEX")"/* dist/
+            else
+              echo "CRITICAL ERROR: Cannot find index.html anywhere in the project!"
+              exit 1
+            fi
           fi
-          ls -la dist/
-      - name: Build bundled app and prepare Android
-        run: bash scripts/android-setup.sh
+          
+          # Verify index.html is in dist
+          ls -la dist/index.html
+          
+      - name: Force Capacitor Config to use Dist
+        run: |
+          # Directly edit capacitor.config.ts to ensure webDir is exactly 'dist'
+          sed -i "s|webDir: *['\"].*['\"]|webDir: 'dist'|" capacitor.config.ts
+          echo "Updated capacitor.config.ts:"
+          grep "webDir" capacitor.config.ts
+          
+      - name: Add and Sync Android
+        run: |
+          # Bypass the broken scripts/android-setup.sh and run Capacitor directly
+          npx cap add android || true
+          npx cap sync android
+          
       - name: Build and verify signed APK
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -47,6 +74,7 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: python3 scripts/android-release.py
+        
       - uses: actions/upload-artifact@v4
         with:
           name: justus-release-apk
