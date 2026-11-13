@@ -11,4 +11,5 @@
 - [x] Tests: database security scenarios (third account, revoked code, full room, non-member reads, expired code — verified live 2026-11-12)
 - [x] GitHub debug APK produced and download shared
 - [x] Harden signed release workflow and verify signing failure/success handling (automated contract tests; actual signed APK requires repository secrets)
-- [ ] Blocked on user: add the four keystore repository secrets in GitHub before a real signed release APK can be built
+- [x] Browser-only keystore creation workflow
+- [ ] Blocked on user: add 3 password secrets + SECRETS_WRITE_TOKEN, run keystore workflow, then release workflow
