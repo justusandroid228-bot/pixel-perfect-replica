@@ -3,7 +3,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const config: CapacitorConfig = {
   appId: "app.justus.messenger",
   appName: "Just Us",
-  webDir: "dist/client",
+  webDir: "dist",
   android: { allowMixedContent: false },
   plugins: {
     SplashScreen: { launchShowDuration: 3000, launchAutoHide: false, backgroundColor: "#FFF0F5", showSpinner: false },

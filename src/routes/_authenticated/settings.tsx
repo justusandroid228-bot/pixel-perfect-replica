@@ -15,6 +15,10 @@ export const Route = createFileRoute("/_authenticated/settings")({
     meta: [
       { title: "Settings — Just Us" },
       { name: "description", content: "Your Just Us account, notifications and privacy." },
+      { property: "og:title", content: "Settings — Just Us" },
+      { property: "og:description", content: "Your Just Us account, notifications and privacy." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),

@@ -11,6 +11,10 @@ export const Route = createFileRoute("/_authenticated/chat")({
     meta: [
       { title: "Chat — Just Us" },
       { name: "description", content: "Your private space for two." },
+      { property: "og:title", content: "Chat — Just Us" },
+      { property: "og:description", content: "Your private space for two." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),

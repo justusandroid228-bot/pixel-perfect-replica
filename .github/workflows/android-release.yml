@@ -26,43 +26,21 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: python3 scripts/android-release.py --check-secrets
         
-      - name: Install Dependencies
-        run: |
-          npm install -g npm@11
-          npm install --no-audit --no-fund
-          
-      - name: Build Web App and Force into Dist
-        run: |
-          # 1. Run the build (this might create the files in a different folder)
-          npm run build || CAPACITOR=1 npx vite build
-          
-          # 2. Create the dist folder if it doesn't exist
-          mkdir -p dist
-          
-          # 3. If index.html is not in dist, search the whole project for it and copy it
-          if [ ! -f "dist/index.html" ]; then
-            echo "index.html is missing from dist. Searching for it..."
-            FOUND_INDEX=$(find . -name "index.html" -not -path "*/node_modules/*" -not -path "*/android/*" | head -n 1)
-            
-            if [ -n "$FOUND_INDEX" ]; then
-              echo "Found at $FOUND_INDEX. Copying to dist..."
-              cp -r "$(dirname "$FOUND_INDEX")"/* dist/
-            else
-              echo "CRITICAL ERROR: Cannot find index.html anywhere!"
-              exit 1
-            fi
-          fi
-          
-      - name: Force Capacitor Config to Dist
-        run: |
-          # Force capacitor.config.ts to point exactly to 'dist'
-          sed -i "s|webDir: *['\"].*['\"]|webDir: 'dist'|" capacitor.config.ts
-          
-      - name: Add and Sync Android directly
-        run: |
-          # Bypass the custom scripts and run Capacitor directly
-          npx cap add android || true
-          npx cap sync android
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Test Android build paths
+        run: bunx vitest run src/test/android-build.test.ts
+
+      - name: Build mobile web app
+        run: npm run build
+
+      - name: Verify web assets
+        run: test -s dist/index.html
+
+      - name: Configure and sync Android
+        run: bash scripts/android-setup.sh
           
       - name: Build and verify signed APK
         env:

@@ -8,6 +8,8 @@ export const Route = createFileRoute("/privacy")({
       { name: "description", content: "How Just Us stores your messages and media, and what it does not promise." },
       { property: "og:title", content: "Privacy notice — Just Us" },
       { property: "og:description", content: "How Just Us stores your messages and media." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Privacy,

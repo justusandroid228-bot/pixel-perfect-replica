@@ -10,6 +10,16 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 const mobile = process.env["CAPACITOR"] === "1";
 
 export default defineConfig({
+  // Android bundles only the client. Keep the hosted Worker build unchanged.
+  ...(mobile ? {
+    nitro: false,
+    vite: {
+      environments: {
+        client: { build: { outDir: "dist" } },
+        server: { build: { outDir: ".tanstack/mobile-server" } },
+      },
+    },
+  } : {}),
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this

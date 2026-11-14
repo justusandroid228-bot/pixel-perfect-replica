@@ -12,4 +12,5 @@
 - [x] GitHub debug APK produced and download shared
 - [x] Harden signed release workflow and verify signing failure/success handling (automated contract tests; actual signed APK requires repository secrets)
 - [x] Browser-only keystore creation workflow
+- [x] Align Android build output, Capacitor, and both APK workflows to dist; output and signing regression tests pass (full APK build/sync awaits GitHub Actions)
 - [ ] Blocked on user: add 3 password secrets + SECRETS_WRITE_TOKEN, run keystore workflow, then release workflow

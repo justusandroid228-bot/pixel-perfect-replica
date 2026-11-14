@@ -14,6 +14,8 @@ export const Route = createFileRoute("/reset-password")({
       { name: "description", content: "Choose a new password for your Just Us account." },
       { property: "og:title", content: "Set a new password — Just Us" },
       { property: "og:description", content: "Choose a new password for your Just Us account." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: ResetPassword,

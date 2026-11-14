@@ -10,6 +10,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "A private, romantic 1-to-1 messenger. Pair with your person using a one-time code." },
       { property: "og:title", content: "Just Us" },
       { property: "og:description", content: "Some conversations are meant for two." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Splash,

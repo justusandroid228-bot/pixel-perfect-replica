@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-WEB_ENTRY="dist/client/index.html"
+WEB_ENTRY="dist/index.html"
 
 if [ ! -s "$WEB_ENTRY" ]; then
   echo "ERROR: Missing $WEB_ENTRY"

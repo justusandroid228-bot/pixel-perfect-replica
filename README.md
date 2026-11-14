@@ -25,6 +25,20 @@ npm run dev
 
 ## Signed Android release APK
 
+### Android build output
+
+`npm run build` creates the bundled Android app directly in `dist/`, including the generated `dist/index.html` and its compiled assets. Capacitor's `webDir` is `dist`; neither workflow rewrites that setting or copies a source HTML file as a fallback.
+
+```sh
+bun install --frozen-lockfile
+npm run build
+bash scripts/android-setup.sh
+# For an existing Android project after later web changes:
+npx cap sync android
+```
+
+The setup script creates the Android platform if needed, adds permissions and app artwork, then syncs the complete bundle. Both debug and signed release workflows use these same steps and stop if the generated entry is missing. Use `npm run build:web` for the hosted web/Worker build, not the Android bundle.
+
 In GitHub, open this repository → **Settings → Secrets and variables → Actions → New repository secret** and add:
 
 | Secret | Value |
