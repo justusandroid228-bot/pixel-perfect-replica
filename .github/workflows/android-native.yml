@@ -20,7 +20,9 @@ jobs:
           unzip -o justus-kotlin-native-phase1.zip -d .
           mv justus-kotlin-native/* .
           mv justus-kotlin-native/.[!.]* . 2>/dev/null || true
-
+      - name: Fix Compose Version
+        run: |
+          sed -i 's/2026.09.00/2025.11.00/g' app/build.gradle.kts
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
