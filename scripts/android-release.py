@@ -39,20 +39,17 @@ def build_release(root, environ):
     if not verifiers:
         raise ValueError("Android SDK build-tools must include apksigner.")
     verifier = max(verifiers, key=lambda p: tuple(int(part) if part.isdigit() else 0 for part in p.parent.name.split(".")))
-    apk = android / "app/build/outputs/apk/release/app-release.apk"
+    out = android / "app/build/outputs/apk/release"
+    apk = out / "app-release.apk"
+    unsigned = out / "app-release-unsigned.apk"
     # A previous local build must never be mistaken for this run's output.
     apk.unlink(missing_ok=True)
+    unsigned.unlink(missing_ok=True)
     with tempfile.TemporaryDirectory(prefix="justus-signing-") as folder:
         keystore = Path(folder) / "release.keystore"
         keystore.write_bytes(material)
         keystore.chmod(0o600)
         signing_env = dict(environ)
-        signing_env.update({
-            "ORG_GRADLE_PROJECT_android.injected.signing.store.file": str(keystore),
-            "ORG_GRADLE_PROJECT_android.injected.signing.store.password": environ[SECRET_NAMES[1]],
-            "ORG_GRADLE_PROJECT_android.injected.signing.key.alias": environ[SECRET_NAMES[2]],
-            "ORG_GRADLE_PROJECT_android.injected.signing.key.password": environ[SECRET_NAMES[3]],
-        })
         signing_env.pop("ANDROID_KEYSTORE_BASE64", None)
         subprocess.run([
             "keytool", "-list", "-keystore", str(keystore),
@@ -62,6 +59,16 @@ def build_release(root, environ):
         gradle = android / "gradlew"
         gradle.chmod(gradle.stat().st_mode | 0o100)
         subprocess.run(["./gradlew", "--no-daemon", "assembleRelease"], cwd=android, env=signing_env, check=True)
+        if not unsigned.is_file():
+            raise ValueError("The release app-release-unsigned.apk was not produced; no artifact will be uploaded.")
+        # Passwords are read by apksigner from the environment, never from arguments.
+        subprocess.run([
+            str(verifier), "sign", "--ks", str(keystore),
+            "--ks-key-alias", environ["ANDROID_KEY_ALIAS"],
+            "--ks-pass", "env:ANDROID_KEYSTORE_PASSWORD",
+            "--key-pass", "env:ANDROID_KEY_PASSWORD",
+            "--out", str(apk), str(unsigned),
+        ], env=signing_env, check=True)
         if not apk.is_file():
             raise ValueError("The signed app-release.apk was not produced; no artifact will be uploaded.")
         subprocess.run([str(verifier), "verify", "--verbose", "--print-certs", str(apk)], check=True)

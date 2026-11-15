@@ -37,7 +37,10 @@ class ReleaseSigningTests(unittest.TestCase):
             self.assertEqual(self.keystore.parent.stat().st_mode & 0o777, 0o700)
             self.assertEqual(self.keystore.read_bytes(), b"test-keystore")
         if args[0] == "./gradlew":
-            self.apk.write_bytes(b"test-apk")
+            self.apk.with_name("app-release-unsigned.apk").write_bytes(b"unsigned")
+        if "sign" in args:
+            self.assertIn("env:ANDROID_KEY_PASSWORD", args)
+            Path(args[args.index("--out") + 1]).write_bytes(b"test-apk")
         for secret in (self.env["ANDROID_KEYSTORE_PASSWORD"], self.env["ANDROID_KEY_PASSWORD"]):
             self.assertNotIn(secret, args)
         return subprocess.CompletedProcess(args, 0)
@@ -62,12 +65,12 @@ class ReleaseSigningTests(unittest.TestCase):
         self.assertEqual(Path(run.call_args.args[0][0]).name, "apksigner")
         self.assertIn("verify", run.call_args.args[0])
         self.assertFalse(self.keystore.exists())
-        gradle_env = run.call_args_list[1].kwargs["env"]
-        self.assertEqual(gradle_env["ORG_GRADLE_PROJECT_android.injected.signing.store.password"], "test-store-password")
-        self.assertNotIn("ANDROID_KEYSTORE_BASE64", gradle_env)
+        sign_env = run.call_args_list[2].kwargs["env"]
+        self.assertEqual(sign_env["ANDROID_KEY_PASSWORD"], "test-key-password")
+        self.assertNotIn("ANDROID_KEYSTORE_BASE64", sign_env)
 
     def test_failure_at_each_command_removes_keystore(self):
-        for failing_step in ("keytool", "gradlew", "apksigner"):
+        for failing_step in ("keytool", "gradlew", "apksigner"):  # apksigner covers sign
             with self.subTest(step=failing_step):
                 def command(args, **kwargs):
                     self.fake_command(args, **kwargs)
