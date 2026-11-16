@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { BrandMark } from "@/components/Hearts";
@@ -40,10 +40,11 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [created, setCreated] = useState<string | null>(null);
 
   useEffect(() => {
-    if (session) navigate({ to: "/chat", replace: true });
-  }, [session, navigate]);
+    if (session && !created) navigate({ to: "/chat", replace: true });
+  }, [session, created, navigate]);
 
   const setMode = (m: Mode) => {
     setError(null);
@@ -75,17 +76,32 @@ function AuthPage() {
           options: { emailRedirectTo: siteUrl(), data: { display_name: display } },
         });
         if (error) throw error;
-        if (!data.session) setNotice("Check your email to confirm your account, then sign in here.");
+        if (data.user && data.user.identities?.length === 0) throw new Error("This email already has an account. Log in instead.");
+        if (data.session) setCreated(em.data);
+        else setNotice("Account created. Check your email to confirm it, then log in here.");
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(em.data, { redirectTo: `${siteUrl()}/reset-password` });
         if (error) throw error;
         setNotice("If that email has an account, a reset link is on its way.");
       }
     } catch (err) {
-      setError(friendlyError(err));
+      setError(authError(err));
     } finally {
       setBusy(false);
     }
+  }
+
+  if (created) {
+    return (
+      <main className="flex min-h-dvh flex-col items-center justify-center bg-romance px-6 text-center safe-top safe-bottom">
+        <div role="status" className="w-full max-w-sm rounded-3xl bg-card/80 p-8 shadow-soft backdrop-blur">
+          <CheckCircle2 className="mx-auto h-14 w-14 text-primary" />
+          <h1 className="mt-4 text-3xl font-semibold text-primary">You're signed up!</h1>
+          <p className="mt-3 text-sm text-muted-foreground">Your account for <span className="font-semibold text-foreground">{created}</span> was created successfully.</p>
+          <button onClick={() => navigate({ to: "/chat", replace: true })} className="mt-6 h-12 w-full rounded-full bg-heart font-semibold text-primary-foreground shadow-glow">Continue</button>
+        </div>
+      </main>
+    );
   }
 
   const title = mode === "signup" ? "Create your account" : mode === "forgot" ? "Reset password" : "Welcome back";
@@ -138,4 +154,14 @@ function AuthPage() {
       </div>
     </main>
   );
+}
+
+function authError(err: unknown): string {
+  const msg = (err as { message?: string })?.message ?? "";
+  if (/already registered|already exists/i.test(msg)) return "This email already has an account. Log in instead.";
+  if (/invalid login credentials/i.test(msg)) return "Email or password is incorrect.";
+  if (/email not confirmed/i.test(msg)) return "Please confirm your email first, then log in.";
+  if (/pwned|weak|compromised/i.test(msg)) return "This password is too common or was leaked. Please choose a different one.";
+  if (/rate limit|too many/i.test(msg)) return "Too many tries. Please wait a few minutes and try again.";
+  return friendlyError(err);
 }
