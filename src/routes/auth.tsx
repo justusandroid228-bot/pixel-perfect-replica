@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,9 +41,10 @@ function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [created, setCreated] = useState<string | null>(null);
+  const signingUp = useRef(false);
 
   useEffect(() => {
-    if (session && !created) navigate({ to: "/chat", replace: true });
+    if (session && !created && !signingUp.current) navigate({ to: "/chat", replace: true });
   }, [session, created, navigate]);
 
   const setMode = (m: Mode) => {
@@ -70,6 +71,7 @@ function AuthPage() {
       } else if (mode === "signup") {
         const display = name.trim().slice(0, 40);
         if (!display) throw new Error("Tell us what your partner should call you");
+        signingUp.current = true;
         const { data, error } = await supabase.auth.signUp({
           email: em.data,
           password,
@@ -87,6 +89,7 @@ function AuthPage() {
     } catch (err) {
       setError(authError(err));
     } finally {
+      signingUp.current = false;
       setBusy(false);
     }
   }
